@@ -1,0 +1,65 @@
+<html>
+	<head>
+		<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+		<script type="text/javascript">
+			// Google Provided initMap function - Viewing Australia
+			var map;
+			function initMap() {
+				map = new google.maps.Map(document.getElementById('map'), {
+				  center: {lat: -34.397, lng: 150.644},
+				  zoom: 8
+				});
+				
+				// Get Locations using JQuery AJAX function
+				$.ajax({
+					url: "/getlocations",
+					dataType: 'json',
+					success: function(data) {
+						console.log("from server",data);
+						
+						// Draw on map		
+						for (var i = 0; i < data.length; i++) {
+								
+							// Create a marker for each location
+							var marker = new google.maps.Marker({
+							  position: {"lat": Number(data[i].lat), "lng": Number(data[i].lon)},
+							  map: map,
+							  title: 'You are here!'
+							}); 							
+						}
+
+						if (data.length > 0) {
+							// Center the map on the last location
+							map.setCenter({lat: Number(data[data.length-1].lat), lng: Number(data[data.length-1].lon)});
+						}
+					},
+					error: function() {
+						console.log("error");
+					}
+				});    				
+				
+				
+			}
+					
+		</script>
+		
+		<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
+		async defer></script>				
+		<style>
+		  /* Always set the map height explicitly to define the size of the div
+		   * element that contains the map. */
+		  #map {
+			height: 100%;
+		  }
+		  /* Optional: Makes the sample page fill the window. */
+		  html, body {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		  }
+		</style>
+    </head>
+	<body>
+		<div id="map"></div>
+	</body>
+</html>

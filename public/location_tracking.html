@@ -1,0 +1,88 @@
+<html>
+	<head>
+		<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+		<script type="text/javascript">
+			if (navigator.geolocation) {
+				
+				navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {});
+
+				function successCallback(currentPosition) {
+					var lat = currentPosition.coords.latitude,
+					lon = currentPosition.coords.longitude;
+					
+					var point = {lat: lat, lon: lon};
+ 
+ 				
+		        	var mapElem = document.getElementById('map');
+					mapElem.innerHTML = "You are located at: " + lat + ", " + lon;
+
+					// Send to Server
+					$.ajax({
+						url: "/savelocation?lat=" + lat + "&lon=" + lon,
+						dataType: 'json',
+						success: function(data) {
+							console.log(data);
+						},
+						error: function() {
+							console.log("error");
+						}
+					});     
+					
+					// Check GeoFence	
+					// https://www.latlong.net/
+					// 40.729902,-73.994428				
+					var pointtocheck = {lat: 40.729902, lon: -73.994428, maxdistance: 1};
+					if (inrange(point, pointtocheck)) {
+						mapElem.innerHTML = mapElem.innerHTML + "<br />INSIDE GEOFENCE";
+					}
+					else {
+						mapElem.innerHTML = mapElem.innerHTML + "<br />OUTSIDE GEOFENCE";
+					}
+					
+				}
+
+				function errorCallback(e) {
+		        	var mapElem = document.getElementById('map');
+					mapElem.innerHTML = e;
+				}
+
+			} else {
+				var mapElem = document.getElementById('map');
+				mapElem.innerHTML = "Not Allowed";
+			}
+
+
+			// Geo Math Related Functions
+			function inrange(point, emitter) {
+				if (geoDistance(point.lat, point.lon, emitter.lat, emitter.lon) < emitter.maxdistance) {
+					return true;
+				} else {
+					return false;
+				}
+			}			
+
+			function geoDistance(lat1, lng1, lat2, lng2, unit) {
+				var radlat1 = Math.PI * lat1/180
+				var radlat2 = Math.PI * lat2/180
+				var radlng1 = Math.PI * lng1/180
+				var radlng2 = Math.PI * lng2/180
+				var theta = lng1-lng2
+				var radtheta = Math.PI * theta/180
+				var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+				dist = Math.acos(dist)
+				dist = dist * 180/Math.PI
+				dist = dist * 60 * 1.1515
+				//if (unit=="K") { dist = dist * 1.609344 }
+				//if (unit=="N") { dist = dist * 0.8684 }
+				// This is returning miles not KM at the moment
+				// Now it is KM..
+				dist = dist * 1.609344;
+				return dist
+			}
+
+		</script>
+	</head>
+	<body>
+		<div id="map"></div>
+	</body>
+</html>
